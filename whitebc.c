@@ -13,14 +13,32 @@
 #define BLUE 	"\x1b[34m"
 #define RESET 	"\x1b[0m"
 
+void displayHelp(){
+	puts("USAGE");
+	puts("\twhitebc [OPTION...] [FILE...]");
+	puts("\twhitebc -s [s, l] or [small, large]");
+	puts("\twhitebc -q [FILE, HASH...]");
+	puts("\twhitebc -v [ARGUMENT...]");
+
+	puts("\nDESCRIPTION");
+	puts("\t-v\tVerbose mode.");
+}
+
 void menu(){
 	char line[200];
 	FILE * fp = fopen("./ascii.txt", "r");
-	while(!feof(fp)){
-		fgets(line, sizeof(line), fp);
-		printf(RED"%s"RESET, line);
+	// If file cant be read replace title and continue
+	if (fp == NULL){
+		puts(RED"\t\t*Insert ascii title here*"RESET);
+		puts(RED"\tSomething went wrong with the ascii file"RESET);
+	}else{
+		while(!feof(fp)){
+			fgets(line, sizeof(line), fp);
+			printf(RED"%s"RESET, line);
+		}
+		fclose(fp);
 	}
-	fclose(fp);
+
 	printf("\n/// MENU \\\\\\\n");
 	printf("[ A ] Analise malware via upload.\n");
 	printf("[ S ] Scan PC for malware.\n");
@@ -30,7 +48,7 @@ void menu(){
 int main(int argc, char *argv[]){
 	// Init variables
 	int opt;
-	char optString[] = ":a:hMms";
+	bool verbose = false;
 
 	// Argument handler
 	if (argc > 3){
@@ -41,17 +59,11 @@ int main(int argc, char *argv[]){
 		exit(0);
 	}
 
-	while((opt = getopt(argc, argv, optString)) != -1){
+	while((opt = getopt(argc, argv, ":a:hMms:v")) != -1){
 		switch(opt){
 			case 'a':
 				// Analise a file via upload
 				printf("Analysing: %s\n", optarg);
-				break;
-			case 'h':
-				printf("SYNOPSIS\n");
-				printf("\twhitebc [OPTION...] [FILE...]\n");
-				printf("\twhitebc -s [small, medium, large]\n");
-				printf("\twhitebc -q [FILE, HASH...]\n");
 				break;
 			case 'm':
 			case 'M':
@@ -59,20 +71,32 @@ int main(int argc, char *argv[]){
 				break;
 			case 's':
 				// Scan computer for top 1000 malware hashes
-				// Three different modes short, medium, long
+				// Three different modes short, long
 				// printf("Scanning: %s\n", optarg);
-				huntMalware();
+				if (strcmp(optarg, "short") == 0 || strcmp(optarg, "s") == 0){
+					huntMalware(verbose, 's');
+				}else if(strcmp(optarg, "long") == 0 || strcmp(optarg, "l") == 0){
+					huntMalware(verbose, 'l');
+				}else{
+					colourText("Incorrect usage of arguments.\n", 'y');
+					exit(0);
+				}
 				break;
 			case 'q':
 				// Query API for hash of file
 				printf("Querying database: %s\n", optarg);
 				break;
+			case 'v':
+				verbose = true;
 			case ':':
 				colourText("arguments were not met, type -h for help\n", 'y');
 				break;
+			case 'h':
 			case '?':
-			    colourText("argument does not exist, type -h for help\n", 'y');
-			    break;
+				displayHelp();
+			    exit(0);
+			default:
+				break;
 		}
 	}
 	return 0;

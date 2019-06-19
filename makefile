@@ -12,10 +12,10 @@ $(EXEC):$(OBJ) whitebc.o
 whitebc.o: whitebc.c tools.h scan.h
 	$(CC) $(FLAGS) -c whitebc.c
 
-tools.o: tools.c tools.h scan.h
+tools.o: tools.c tools.h
 	$(CC) $(FLAGS) -c tools.c
 
-scan.o: scan.c scan.h
+scan.o: scan.c scan.h tools.h
 	$(CC) $(FLAGS) -c scan.c
 
 clean:
