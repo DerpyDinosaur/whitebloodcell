@@ -41,6 +41,27 @@ void getInput(char *text, char *output){
 	output[sizeof(output)-1] = '\0';
 }
 
+void nomChars(char *charArray, char *output){
+	int badChars, i = 0;
+	char newString[strlen(output)];
+
+	for (int x = 0; x < strlen(output); ++x){
+		badChars = 0;
+		for (int y = 0; y < strlen(charArray); ++y){
+			if (charArray[y] == output[x]){
+				badChars++;
+			}
+		}
+
+		if (badChars == 0){
+			newString[i++] = output[x];
+		}
+	}
+
+	newString[i-1] = '\0';
+	strcpy(output, newString);
+}
+
 // Clears screen both windows and linux
 void clearScreen(){
 	system("@cls||clear");
