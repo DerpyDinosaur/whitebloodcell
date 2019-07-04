@@ -26,7 +26,7 @@ void displayHelp(){
 
 void menu(){
 	char line[200];
-	FILE * fp = fopen("./ascii.txt", "r");
+	FILE * fp = fopen("custodia/ascii.wbc", "r");
 	// If file cant be read replace title and continue
 	if (fp == NULL){
 		puts(RED"\t\t*Insert ascii title here*"RESET);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
 		exit(0);
 	}
 
-	while((opt = getopt(argc, argv, ":a:hMms:v")) != -1){
+	while((opt = getopt(argc, argv, ":a:hMms:q:v")) != -1){
 		switch(opt){
 			case 'a':
 				// Analise a file via upload
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]){
 			case 'v':
 				verbose = true;
 			case ':':
-				colourText("arguments were not met, type -h for help\n", 'y');
+				colourText("Arguments were not met, type -h for help\n", 'y');
 				break;
 			case 'h':
 			case '?':
