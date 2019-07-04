@@ -2,95 +2,107 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <json-c/json.h>
 
 #include "tools.h"
 
-<<<<<<< Updated upstream
-void huntMalware(){
-	// Variables
-	FILE * fp = fopen("apisample.json", "r+");
-	if (fp == NULL){
-		colourText("ERROR: JSON file could not be read\nProgram terminating...", 'r');
-		return;
-	}
-	char line[1711];
-	// int numOfMalware;
+struct tmp{
+	// Char length should match length of hash size
+	char md5[100];
+	char sha1[100];
+	char sha256[100];
+	char name[100];
+};
 
-	// JSON document
-	struct json_object *json;
-	// JSON fields
-	// struct json_object *md5;
-	// struct json_object *threat_name;
-
-	fseek(fp, 1, SEEK_END);
-	fputs("", fp);
-	fseek(fp, 1, SEEK_SET);
-	fputs("", fp);
-	fread(line, 1711, 1, fp);
-	fclose(fp);
-
-	json = json_tokener_parse(line);
-
-	json_object_object_foreach(json, key, val){
-		printf("%s\n", json_object_get_string(val));
-	}
-
-	// json_object_object_get_ex(json, "md5", &md5);
-	// json_object_object_get_ex(json, "threat_name", &threat_name);
-
-	// printf("Name: %s\n", json_object_get_string(threat_name));
-=======
 bool updateMalwareDatabase(){
 	// Variables
-	FILE * fp = fopen("apisample.json", "r");
-	if (fp == NULL){
-		colourText("ERROR: JSON file could not be read\nProgram terminating...", 'r');
+	FILE * jsonfp = fopen("custodia/apisample.json", "r");
+	if (jsonfp == NULL){
+		colourText("ERROR: JSON file could not be read\nProgram terminating...\n", 'r');
+		exit(0);
+	}
+
+	FILE * wantedfp = fopen("custodia/most-wanted.wbc", "w");
+	if (wantedfp == NULL){
+		colourText("ERROR: Wanted file could not be created\nProgram terminating...\n", 'r');
 		exit(0);
 	}
 	bool dataUpdated = false;
 	char line[1024];
 	const char delim[2] = ":";
 	char *token;
+	char badChars[] = "\", ";
+	struct tmp tmp;
 
 	// JSON PARSER
-	fgets(line, sizeof(line), fp);
-	fgets(line, sizeof(line), fp);
-	fgets(line, sizeof(line), fp);
-	token = strtok(line, delim);
-	token = strtok(NULL, delim);
-	printf("%s\n", token);
+	/*
+		11 * 1000 + 2 = 11002
+	*/
 
-	fgets(line, sizeof(line), fp);
-	token = strtok(line, delim);
-	token = strtok(NULL, delim);
-	printf("%s\n", token);
+	// NOM '['
+	fgets(line, sizeof(line), jsonfp);
+	for (int i = 0; i < 3; ++i){
+		// NOM '{'
+		fgets(line, sizeof(line), jsonfp);
+		// Get MD5 line
+		fgets(line, sizeof(line), jsonfp);
+		token = strtok(line, delim);
+		token = strtok(NULL, delim);
+		strcpy(tmp.md5, token);
+		nomChars(badChars, tmp.md5);
 
-	fgets(line, sizeof(line), fp);
-	token = strtok(line, delim);
-	token = strtok(NULL, delim);
-	printf("%s\n", token);
+		// Get SHA1 line
+		fgets(line, sizeof(line), jsonfp);
+		token = strtok(line, delim);
+		token = strtok(NULL, delim);
+		strcpy(tmp.sha1, token);
+		nomChars(badChars, tmp.sha1);
 
-	// while(token != NULL){
-	// 	printf("%s\n", token);
-	// 	fgets(line, sizeof(line), fp);
-	// 	token = strtok(NULL, delim);
-	// }
+		// Get SHA256 line
+		fgets(line, sizeof(line), jsonfp);
+		token = strtok(line, delim);
+		token = strtok(NULL, delim);
+		strcpy(tmp.sha256, token);
+		nomChars(badChars, tmp.sha256);
 
-	fclose(fp);
+		// Get Name line
+		fgets(line, sizeof(line), jsonfp);
+		fgets(line, sizeof(line), jsonfp);
+		fgets(line, sizeof(line), jsonfp);
+		token = strtok(line, delim);
+		token = strtok(NULL, delim);
+		strcpy(tmp.name, token);
+		nomChars("\",", tmp.name);
+		tmp.name[0] = '#';
+
+		fgets(line, sizeof(line), jsonfp);
+		fgets(line, sizeof(line), jsonfp);
+		fgets(line, sizeof(line), jsonfp);
+		fgets(line, sizeof(line), jsonfp);
+
+		fprintf(wantedfp, "%s\n", tmp.name);
+		fprintf(wantedfp, "%s\n", tmp.md5);
+		fprintf(wantedfp, "%s\n", tmp.sha1);
+		fprintf(wantedfp, "%s\n", tmp.sha256);
+
+		// puts(tmp.name);
+		// puts(tmp.md5);
+		// puts(tmp.sha1);
+		// puts(tmp.sha256);
+	}
+	fclose(wantedfp);
+	fclose(jsonfp);
+
 	return dataUpdated;
 }
 
 void huntMalware(bool verbose, char searchTime){
+	/*
+		~ LEADS ~
+		ftw and nftw / Searching for files
+	*/
 	bool isUpdated = updateMalwareDatabase();
-	/*DEBUG LINE*/verbose = true;
-	if (verbose){
-		if (isUpdated == true){
-			colourText("Malware database was updated...\n", 'y');
-		}else if(isUpdated == false){
-			colourText("Malware database did not update...\n", 'y');
-		}
+	/*DEBUG LINE*/verbose = false;
+	if ((isUpdated == true) && verbose){
+		colourText("Malware database was updated...\n", 'g');
 	}
-
->>>>>>> Stashed changes
 }
