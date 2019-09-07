@@ -50,6 +50,8 @@ int main(int argc, char *argv[]){
 	int opt;
 	bool verbose = false;
 
+	// Load config file
+
 	// Argument handler
 	if (argc > 3){
 		colourText("too many arguments\n", 'r');

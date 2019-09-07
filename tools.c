@@ -67,6 +67,63 @@ void clearScreen(){
 	system("@cls||clear");
 }
 
+// Function will grab a specified variable from the config file
+// This allows the program to locate one config rather than all three at once
+// TODO: Allow user to change config path
+void getConfig(char *output, char mode){
+	char line[128];
+	char *confName;
+	bool configIsSet = false;
+
+	switch(mode){
+		case 'm':
+			confName = "[Path to md5sum]\n";
+			break;
+
+		case 's':
+			confName = "[Path to sha1sum]\n";
+			break;
+
+		case 'S':
+			confName = "[Path to sha256sum]\n";
+			break;
+
+		default:
+			puts(RED"Incorrect Function Mode: getConfig()");
+			exit(0);
+	}
+
+	//Attempt to load config file
+	FILE * configfp = fopen("custodia/config.wbc", "r");
+	if (configfp == NULL){
+		puts(RED"ERROR: Config file could not be opened\n");
+		exit(0);
+	}
+
+	// Loop while not end of config file
+	while(!feof(configfp)){
+		// Grab line in config
+		fgets(line, sizeof(line), configfp);
+		// If line is equal to the config name and config is not set
+		if (configIsSet == false && strcmp(line, confName) == 0){
+			// Loop until line is not equal to a return and space character
+			while (true){
+				fgets(line, sizeof(line), configfp);
+				if (line[0] != '\n' && line[0] != ' '){
+					nomChars(" ", line);
+					configIsSet = true;
+					break;
+				}
+			}
+		}// Break loop when config is set
+		else if (configIsSet == true){
+			break;
+		}
+	}
+	fclose(configfp);
+	strcpy(output, line);
+}
+
 // Colour functions
 void colourText(char *text, char colour){
 	if (colour == 'r'){

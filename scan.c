@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
+#include <openssl/sha.h>
+#include <openssl/md5.h>
 
 #include "tools.h"
 
@@ -13,7 +16,17 @@ struct tmp{
 	char name[100];
 };
 
-bool updateMalwareDatabase(){
+void hash(){
+	/* 
+		TODO: Write your own hashing algorithm
+		https://www.ietf.org/rfc/rfc1321.txt
+	*/
+
+	// execl("/usr/bin/md5sum", "md5sum", "custodia/ascii.wbc", NULL);
+	// find -type f \( -not -name "md5sum.txt" \) -exec md5sum '{}' \; > md5sum.txt
+}
+
+bool updateMalwareData(){
 	// Variables
 	FILE * jsonfp = fopen("custodia/apisample.json", "r");
 	if (jsonfp == NULL){
@@ -26,7 +39,7 @@ bool updateMalwareDatabase(){
 		colourText("ERROR: Wanted file could not be created\nProgram terminating...\n", 'r');
 		exit(0);
 	}
-	bool dataUpdated = false;
+	bool dataUpdated = true;
 	char line[1024];
 	const char delim[2] = ":";
 	char *token;
@@ -100,9 +113,8 @@ void huntMalware(bool verbose, char searchTime){
 		~ LEADS ~
 		ftw and nftw / Searching for files
 	*/
-	bool isUpdated = updateMalwareDatabase();
-	/*DEBUG LINE*/verbose = false;
-	if ((isUpdated == true) && verbose){
+	/*DEBUG LINE*/verbose = true;
+	if (updateMalwareData() && verbose == true){
 		colourText("Malware database was updated...\n", 'g');
 	}
 }

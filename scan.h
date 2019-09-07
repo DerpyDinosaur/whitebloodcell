@@ -1,2 +1,3 @@
 extern void huntMalware(bool verbose, char searchTime);
-extern bool updateMalwareDatabase();
+extern void hash();
+extern bool updateMalwareData();
