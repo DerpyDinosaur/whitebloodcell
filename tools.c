@@ -14,6 +14,9 @@
 #include <ctype.h>
 #include <termios.h>
 #include <openssl/sha.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <sys/ioctl.h>
 
 #define _stringSize 128
 #define RED 	"\x1b[31m"
@@ -58,13 +61,24 @@ void nomChars(char *charArray, char *output){
 		}
 	}
 
-	newString[i-1] = '\0';
+	newString[i] = '\0';
 	strcpy(output, newString);
 }
 
 // Clears screen both windows and linux
 void clearScreen(){
-	system("@cls||clear");
+	printf("\033[H\033[J");
+	// system("@cls||clear");
+}
+
+void cursorManip(int io){
+	if (io){
+		// Show cursor
+		printf("\e[?25h");
+	}else if(!io){
+		// Hide cursor
+		printf("\033[?25l");
+	}
 }
 
 // Function will grab a specified variable from the config file
@@ -169,4 +183,39 @@ void echoIO(bool echoIsOn){
 void enterToContinue(){
 	int c;
    	while((c = getchar()) != '\n' && c != EOF);
+}
+
+void fileSize(char const filepath[]){
+	struct stat file;
+
+	if(stat(filepath,&file) == -1){
+		printf("Error Occurred\n");
+	}
+
+	printf("\nFile size: %ld \n",file.st_size);
+}
+
+void typeWriter(char *string, int width, bool newline){
+	// Set nanosleep time @ 1/4 second
+	struct timespec tim, tim2;
+	tim.tv_sec = 0;
+	// tim.tv_nsec = 330000000L;
+	tim.tv_nsec = 100000000L;
+
+	int center = (width / 2) - (strlen(string) / 2);
+	for(int i = 0; string[i] != '\0'; i ++){
+		if (i==0){
+			printf("%*c", center, string[i]);
+		}else{
+			printf("%c", string[i]);
+
+			if (nanosleep(&tim, &tim2) > 0){
+				printf("Nanosleep failed!");
+				exit(EXIT_FAILURE);
+			}
+		}
+		fflush(stdout);
+	}if (newline){
+		printf("\n");
+	}
 }

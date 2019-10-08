@@ -1,0 +1,9 @@
+# Exec
+whitebc
+
+# Object Files
+*.o
+
+# Valgrind Files
+vgcore.*
+
