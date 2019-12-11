@@ -1,0 +1,4 @@
+curl -X GET "https://www.hybrid-analysis.com/api/v2/feed/latest?_timestamp=1573429856283" -H  "accept: application/json" 
+-H  "user-agent: Falcon Sandbox" -H  "api-key: xy8avvt479d075cbtp519gq69c00447f1j48ccrl94b5bf8cj74mtca8edce7bdd"
+
+curl -X GET "http://localhost/api/feed.json"

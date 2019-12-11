@@ -1,4 +1,4 @@
-extern void getInput(char *text, char *output);
+extern void getInput(char *text, char *output, int strSize);
 extern void nomChars(char *charArray, char *output);
 extern void clearScreen();
 extern void cursorManip(int io);

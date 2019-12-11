@@ -9,13 +9,24 @@
 #include <time.h>
 
 #include "tools.h"
+#include "feed.h"
 #include "scan.h"
+#include "web.h"
 
+#define SIZE 	128
 #define RED 	"\x1b[31m"
 #define GREEN 	"\x1b[32m"
 #define YELLOW 	"\x1b[33m"
 #define BLUE 	"\x1b[34m"
 #define RESET 	"\x1b[0m"
+
+/*
+	Command to obtain feed and format it
+
+	curl -X GET "https://www.hybrid-analysis.com/api/v2/feed/latest?_timestamp=1573429856283" 
+	-H "accept: application/json" -H "user-agent: Falcon Sandbox" 
+	-H  "api-key: ???" | python3 -m json.tool < feed.json
+*/
 
 void displayHelp(){
 	puts("USAGE");
@@ -34,12 +45,19 @@ void signalHandler(int sig){
 	exit(EXIT_SUCCESS);
 }
 
-void feed(int update){
+void feed(int update, bool verbose){
 	// Signal handler
 	signal(SIGINT, signalHandler);
 
-	if (update){
-		updateMalwareData();
+	if (update == 1){
+		if(updateMalwareData() == true && verbose){
+			colourText("Local malware feed was updated!\nPress enter to continue", 'b');
+			enterToContinue();
+
+		}else if(verbose){
+			colourText("Local malware feed could not be updated, no internet access.\nPress enter to continue", 'b');
+			enterToContinue();
+		}
 	}
 
 	// Get width of terminal
@@ -106,14 +124,14 @@ void feed(int update){
 	}
 
 	// Main loop
-	char line[100];
+	char line[SIZE];
 	FILE * fp = fopen("custodia/most-wanted.wbc", "r");
 	// If file cant be read replace title and continue
 	if (fp == NULL){
 		colourText("Error opening file: most-wanted.wbc", 'r');
 	}else{
 		while(!feof(fp)){
-			fgets(line, 100, fp);
+			fgets(line, sizeof(line), fp);
 			typeWriter(line, width, false);
 		}
 		fclose(fp);
@@ -121,11 +139,11 @@ void feed(int update){
 
 	// Re-enable cursor
 	cursorManip(1);
-	feed(0);
 }
 
 void menu(){
-	char line[200];
+	char choice[2];
+	char line[180];
 	FILE * fp = fopen("custodia/ascii.wbc", "r");
 	// If file cant be read replace title and continue
 	if (fp == NULL){
@@ -141,11 +159,50 @@ void menu(){
 
 	printf(RESET);
 	printf("\n/// MENU \\\\\\\n");
-	printf("[ A ] Analise malware via upload.\n");
-	printf("[ F ] Animated malware feed.\n");
-	printf("[ S ] Scan PC for malware.\n");
-	printf("[ Q ] Query database via hash or string.\n");
-	printf("[ W ] Check website integrity.\n");
+	puts("[ A ] Analise malware via upload.");
+	puts("[ F ] Animated malware feed.");
+	puts("[ S ] Scan PC for malware.");
+	puts("[ Q ] Query database via hash or string.");
+	puts("[ W ] Check website integrity.");
+	puts("[ E ] Exit program.");
+
+	getInput("\n> ", choice, sizeof(choice));
+
+	switch(choice[0]){
+		case 'A':
+		case 'a':
+			puts("Analise");
+			break;
+		case 'F':
+		case 'f':
+			feed(0, false);
+			break;
+		case 'H':
+		case 'h':
+			displayHelp();
+			break;
+		case 'S':
+		case 's':
+			puts("Scan");
+			break;
+		case 'Q':
+		case 'q':
+			puts("Query");
+			break;
+		case 'W':
+		case 'w':
+			checkWebsite();
+			break;
+		case 'E':
+		case 'e':
+			exit(EXIT_SUCCESS);
+		default:
+			// Invalid response:
+			// Callback menu function and try again
+			colourText("That is not a correct menu choice!\nPress enter to continue. ", 'r');
+			enterToContinue();
+			menu();
+	}
 }
 
 int main(int argc, char *argv[]){
@@ -158,11 +215,11 @@ int main(int argc, char *argv[]){
 
 	// Argument handler
 	if (argc == 1){
-		feed(0);
+		feed(0, verbose);
 		exit(EXIT_SUCCESS);
 	}
 
-	while((opt = getopt(argc, argv, ":a:hMms:q:Uv")) != -1){
+	while((opt = getopt(argc, argv, ":a:hMms:q:Uvw")) != -1){
 		switch(opt){
 			case 'a':
 				// Analise a file via upload
@@ -175,14 +232,16 @@ int main(int argc, char *argv[]){
 			case 's':
 				// Scan computer for top 1000 malware hashes
 				// Three different modes short, long
-				if (strcmp(optarg, "short") == 0 || strcmp(optarg, "s") == 0){
-					huntMalware(verbose, 's');
-				}else if(strcmp(optarg, "long") == 0 || strcmp(optarg, "l") == 0){
-					huntMalware(verbose, 'l');
-				}else{
-					colourText("Incorrect usage of argument options.\n", 'y');
-					exit(EXIT_SUCCESS);
-				}
+
+				// if (strcmp(optarg, "short") == 0 || strcmp(optarg, "s") == 0){
+				// 	huntMalware(verbose, 's');
+				// }else if(strcmp(optarg, "long") == 0 || strcmp(optarg, "l") == 0){
+				// 	huntMalware(verbose, 'l');
+				// }else{
+				// 	colourText("Incorrect usage of argument options.\n", 'y');
+				// 	exit(EXIT_SUCCESS);
+				// }
+				printf("Scanning...\n");
 				exit(EXIT_SUCCESS);
 			case 'q':
 				// Query API for hash of file
@@ -190,11 +249,18 @@ int main(int argc, char *argv[]){
 				exit(EXIT_SUCCESS);
 			case 'U':
 				// Initiate feed function and update data
-				feed(1);
+				if (updateMalwareData()){
+					colourText("Malware data has been updated!\n", 'g');
+				}else{
+					colourText("Malware data was not updated!\n", 'r');
+				}
 				exit(EXIT_SUCCESS);
 			case 'v':
 				verbose = true;
 				break;
+			case 'w':
+				checkWebsite();
+				exit(EXIT_SUCCESS);
 			case ':':
 				colourText("Arguments were not met, type -h for help\n", 'y');
 				exit(EXIT_SUCCESS);

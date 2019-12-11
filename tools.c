@@ -1,11 +1,6 @@
 /*
 	Adam John Brickhill
-	Student Number: 10445080
-	Unit: CSP2308
-
-	References:
-	https://www.thecodingforums.com/threads/newbie-turn-off-echo-in-c.315753/
-	https://c-program-example.com/2012/04/c-program-to-encrypt-and-decrypt-a-password.html
+	Email: adam.brickhill@lonetree.site
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,18 +25,18 @@ static struct termios termSettings;
 
 // Gets input from the user char by char and returns string
 // Size can also be specified so a user cannot input past the desired length.
-void getInput(char *text, char *output){
+void getInput(char *text, char *output, int size){
 	int eater;
 
 	// Print custom message for input
 	printf("%s", text);
-	fgets(output, sizeof(output), stdin);
+	fgets(output, size, stdin);
 
-	if (output[sizeof(output)-1] != '\n'){
+	if (output[strlen(output)-1] != '\n'){
 		while(((eater = getchar()) != '\n') && (eater != EOF));
 	}
 
-	output[sizeof(output)-1] = '\0';
+	output[strlen(output)] = '\0';
 }
 
 void nomChars(char *charArray, char *output){
